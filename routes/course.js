@@ -40,6 +40,13 @@ router.get(
         "materialsNeeded",
         "userId",
       ],
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["id", "firstName", "lastName", "emailAddress"],
+        },
+      ],
     });
     res.status(200).json(course);
   })
@@ -52,14 +59,13 @@ router.post(
     try {
       const user = req.currentUser;
       await Course.create({
-        title:req.body.title,
-        description:req.body.description,
-        estimatedTime:req.body.estimatedTime,
-        materialsNeeded:req.body.materialsNeeded,
-        userId: user.id
+        title: req.body.title,
+        description: req.body.description,
+        estimatedTime: req.body.estimatedTime,
+        materialsNeeded: req.body.materialsNeeded,
+        userId: user.id,
       });
-      res.status(201).json({ message: "Course successfully created!" });
-      res.location("/");
+      res.status(201).json({ message: "Course successfully created!" }).location("/");
     } catch (error) {
       if (
         error.name === "SequelizeValidationError" ||
@@ -78,35 +84,38 @@ router.put(
   "/:id",
   authenticateUser,
   asyncHandler(async (req, res) => {
-        try {
-     const user = req.currentUser
-     const course = await Course.findByPk(req.params.id);
-    if (course.userId === user.id) {
-      course.title = req.body.title;
-      course.description = req.body.description;
-      await Course.update(
-        { title: req.body.title, description: req.body.description },
-        {
-          where: {
-            id: req.params.id,
-          },
-        }
-      );
-      res.status(204).end();
-          } else {
-            res.status(403).json({message: 'Access Denied. Unauthorized user'}).end()
+    try {
+      const user = req.currentUser;
+      const course = await Course.findByPk(req.params.id);
+      if (course.userId === user.id) {
+        course.title = req.body.title;
+        course.description = req.body.description;
+        await Course.update(
+          { title: req.body.title, description: req.body.description },
+          {
+            where: {
+              id: req.params.id,
+            },
           }
-        } catch (error) {
-          if (
-            error.name === "SequelizeValidationError" ||
-            error.name === "SequelizeUniqueConstraintError"
-          ) {
-            const errors = error.errors.map((err) => err.message);
-            res.status(400).json({ errors });
-          } else {
-            throw error;
-          }
-        }
+        );
+        res.status(204).end();
+      } else {
+        res
+          .status(403)
+          .json({ message: "Access Denied. Unauthorized user" })
+          .end();
+      }
+    } catch (error) {
+      if (
+        error.name === "SequelizeValidationError" ||
+        error.name === "SequelizeUniqueConstraintError"
+      ) {
+        const errors = error.errors.map((err) => err.message);
+        res.status(400).json({ errors });
+      } else {
+        throw error;
+      }
+    }
     // const course = await Course.findByPk(req.params.id);
     // if (course) {
     //   course.title = req.body.title;
@@ -140,7 +149,7 @@ router.delete(
       });
       res.status(204).end();
     } else {
-      res.status(403).json({message: 'Unauthorized user'}).end();
+      res.status(403).json({ message: "Unauthorized user" }).end();
     }
   })
 );
