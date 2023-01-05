@@ -65,7 +65,7 @@ router.post(
         materialsNeeded: req.body.materialsNeeded,
         userId: user.id,
       });
-      res.status(201).json({ message: "Course successfully created!" }).setHeader('Location', '/');
+      res.status(201).setHeader("Location", "/:id").json({ message: "Course successfully created!" });
     } catch (error) {
       if (
         error.name === "SequelizeValidationError" ||
