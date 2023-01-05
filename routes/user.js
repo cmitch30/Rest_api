@@ -1,13 +1,14 @@
 const express = require("express");
 const router = express.Router();
 const { asyncHandler } = require("../middleware/asyncHandler");
+const { authenticateUser } = require("../middleware/auth-user");
 const { User } = require("../models");
 
 
-router.get('/', asyncHandler (async(req, res) => {
-  const user = req.currentUser;
-  console.log(user)
+router.get('/', authenticateUser, asyncHandler (async(req, res) => {
+    const user = req.currentUser;
   res.status(200).json({
+    id: user.id,
     firstName: user.firstName,
     lastName: user.lastName,
     emailAddress: user.emailAddress,
