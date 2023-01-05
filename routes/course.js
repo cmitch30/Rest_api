@@ -6,7 +6,7 @@ const { Course, User } = require("../models");
 
 router.get(
   "/",
-  asyncHandler(async(req, res) => {
+  asyncHandler(async (req, res) => {
     const course = await Course.findAll({
       attributes: [
         "id",
@@ -41,7 +41,7 @@ router.get(
         "userId",
       ],
     });
-    res.status(200).json(course)
+    res.status(200).json(course);
   })
 );
 
@@ -50,7 +50,14 @@ router.post(
   authenticateUser,
   asyncHandler(async (req, res) => {
     try {
-      await Course.create(req.body);
+      const user = req.currentUser;
+      await Course.create({
+        title:req.body.title,
+        description:req.body.description,
+        estimatedTime:req.body.estimatedTime,
+        materialsNeeded:req.body.materialsNeeded,
+        userId: user.id
+      });
       res.status(201).json({ message: "Course successfully created!" });
       res.location("/");
     } catch (error) {
@@ -68,21 +75,26 @@ router.post(
 );
 
 router.put(
-  "/:id", authenticateUser,
+  "/:id",
+  authenticateUser,
   asyncHandler(async (req, res) => {
-    const course = await Course.findByPk(req.params.id)
-    console.log(course)
-    if (course) {
-        course.title = req.body.title
-        course.description = req.body.description
-        await Course.update({title: req.body.title, description:req.body.description}, {
-            where: {
-                id: req.params.id
-            }
-        })
-        res.status(204).end()
+    const user = req.currentUser;
+    const course = await Course.findByPk(req.params.id);
+    console.log(course);
+    if (course.userId === user.id) {
+      course.title = req.body.title;
+      course.description = req.body.description;
+      await Course.update(
+        { title: req.body.title, description: req.body.description },
+        {
+          where: {
+            id: req.params.id,
+          },
+        }
+      );
+      res.status(204).end();
     } else {
-         res.status(400).json({error: error});
+      res.status(400).json({ error: error });
     }
   })
 );
@@ -91,10 +103,17 @@ router.delete(
   "/:id",
   authenticateUser,
   asyncHandler(async (req, res) => {
-    const course = await Course.findByPk(req.params.id)
-    if (course) {
-        course.destroy()
-        res.status(204).end()
+    const user = req.currentUser;
+    const course = await Course.findByPk(req.params.id);
+    if (course.userId === user.id) {
+      course.destroy({
+        where: {
+          id: req.params.id,
+        },
+      });
+      res.status(204).end();
+    } else {
+      res.status(403).end();
     }
   })
 );
