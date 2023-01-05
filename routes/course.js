@@ -20,7 +20,7 @@ router.get(
         {
           model: User,
           as: "user",
-          attributes: ["firstName", "lastName", "emailAddress"],
+          attributes: ["id", "firstName", "lastName", "emailAddress"],
         },
       ],
     });
@@ -78,9 +78,9 @@ router.put(
   "/:id",
   authenticateUser,
   asyncHandler(async (req, res) => {
-    const user = req.currentUser;
-    const course = await Course.findByPk(req.params.id);
-    console.log(course);
+        try {
+     const user = req.currentUser
+     const course = await Course.findByPk(req.params.id);
     if (course.userId === user.id) {
       course.title = req.body.title;
       course.description = req.body.description;
@@ -93,9 +93,36 @@ router.put(
         }
       );
       res.status(204).end();
-    } else {
-      res.status(400).json({ error: error });
-    }
+          } else {
+            res.status(403).json({message: 'Access Denied. Unauthorized user'}).end()
+          }
+        } catch (error) {
+          if (
+            error.name === "SequelizeValidationError" ||
+            error.name === "SequelizeUniqueConstraintError"
+          ) {
+            const errors = error.errors.map((err) => err.message);
+            res.status(400).json({ errors });
+          } else {
+            throw error;
+          }
+        }
+    // const course = await Course.findByPk(req.params.id);
+    // if (course) {
+    //   course.title = req.body.title;
+    //   course.description = req.body.description;
+    //   await Course.update(
+    //     { title: req.body.title, description: req.body.description },
+    //     {
+    //       where: {
+    //         id: req.params.id,
+    //       },
+    //     }
+    //   );
+    //   res.status(204).end();
+    // } else {
+    //   res.status(400).json({ error: 'Error'});
+    // }
   })
 );
 
@@ -113,7 +140,7 @@ router.delete(
       });
       res.status(204).end();
     } else {
-      res.status(403).end();
+      res.status(403).json({message: 'Unauthorized user'}).end();
     }
   })
 );
