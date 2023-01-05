@@ -53,6 +53,10 @@ module.exports = (sequelize, DataTypes) => {
           notEmpty: {
             msg: "Please provide a password",
           },
+          set(val) {
+            const hashedPassword = bcrypt.hashSync(val, 10);
+            this.setDataValue("password", hashedPassword);
+          },
           // len: {
           //   args: [8, 20],
           //   msg: "The password should be between 8 and 20 characters in length",
