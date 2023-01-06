@@ -116,22 +116,6 @@ router.put(
         throw error;
       }
     }
-    // const course = await Course.findByPk(req.params.id);
-    // if (course) {
-    //   course.title = req.body.title;
-    //   course.description = req.body.description;
-    //   await Course.update(
-    //     { title: req.body.title, description: req.body.description },
-    //     {
-    //       where: {
-    //         id: req.params.id,
-    //       },
-    //     }
-    //   );
-    //   res.status(204).end();
-    // } else {
-    //   res.status(400).json({ error: 'Error'});
-    // }
   })
 );
 
